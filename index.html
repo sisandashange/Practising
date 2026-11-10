@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Bouncy - Debug Mode</title>
+<title>Bouncy - Where ideas bounce</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
 body{background:#0F0F0F;color:#fff;min-height:100vh}
 .screen{max-width:420px;margin:0 auto;padding:28px 20px;min-height:100vh;display:flex;flex-direction:column}
 .hidden{display:none!important}
-.logo-container{text-align:center;margin-top:40px;margin-bottom:20px}
+.logo-container{text-align:center;margin-top:60px;margin-bottom:40px}
 .logo{font-size:44px;font-weight:900;letter-spacing:-1px}
 .ball{display:inline-block;width:16px;height:16px;background:#FF6B35;border-radius:50%;margin-left:4px;animation:bounce 1s infinite alternate}
 @keyframes bounce{to{transform:translateY(-8px)}}
@@ -31,20 +31,13 @@ button:disabled{opacity:.6}
 .post b{font-size:15px}.post p{color:#ccc;font-size:14px;margin-top:6px;line-height:1.5}
 .toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);background:#fff;color:#000;padding:12px 20px;border-radius:30px;font-weight:700;font-size:14px;opacity:0;transition:.3s;pointer-events:none;z-index:99;white-space:nowrap}
 .toast.show{opacity:1}
-
-/* DEBUG BOX STYLES */
-#debug-box { background: #500; color: #fff; padding: 10px; font-family: monospace; font-size: 12px; display: none; margin: 10px; border-radius: 8px; word-break: break-all; border: 1px solid red;}
 </style>
 </head>
 <body>
-
-<!-- THIS WILL SHOW ERRORS ON YOUR SCREEN -->
-<div id="debug-box"></div>
-
 <div id="toast" class="toast"></div>
 
 <div id="auth-screen" class="screen">
-  <div class="logo-container"><div class="logo">Bouncy <span class="ball"></span></div><div class="tagline" id="status-text">Loading script...</div></div>
+  <div class="logo-container"><div class="logo">Bouncy <span class="ball"></span></div><div class="tagline">Where ideas bounce.</div></div>
   <input id="email" type="email" placeholder="Email" autocomplete="email" />
   <input id="password" type="password" placeholder="Password (6+ chars)" />
   <button id="signin-btn" class="btn-black">Sign In</button>
@@ -60,37 +53,14 @@ button:disabled{opacity:.6}
   <div class="post"><b>🎉 Bouncy Team</b><p>Welcome to Bouncy v3. This is your feed. Post, bounce, repeat.</p></div>
 </div>
 
-<script>
-  // 1. CATCH ALL ERRORS AND SHOW THEM ON SCREEN
-  window.onerror = function(msg, url, line) {
-    var debugBox = document.getElementById('debug-box');
-    debugBox.style.display = 'block';
-    debugBox.innerHTML += "ERROR: " + msg + "<br>Line: " + line + "<br>";
-    return false;
-  };
-
-  // Update text so we know the script ran
-  document.getElementById('status-text').textContent = "Script running...";
-</script>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <script>
-  const statusText = document.getElementById('status-text');
-  
-  // 2. CHECK IF SUPABASE LIBRARY LOADED
-  if (!window.supabase) {
-    statusText.textContent = "CDN BLOCKED: Supabase failed to load.";
-    document.getElementById('debug-box').style.display = 'block';
-    document.getElementById('debug-box').textContent = "Could not load the Supabase library from jsdelivr. Check your internet or adblocker.";
-  } else {
-    statusText.textContent = "Where ideas bounce.";
-  }
-
   const SUPABASE_URL = 'https://lakupnehsetdazezlsrs.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_3ePLMRIKVNms7Qi461FQXw_x2TGc75s';
 
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  // FIXED: Renamed to supabaseClient so it doesn't clash with the CDN
+  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  
   const authScreen=document.getElementById('auth-screen'),homeScreen=document.getElementById('home-screen'),emailInput=document.getElementById('email'),passwordInput=document.getElementById('password'),errorMsg=document.getElementById('error-msg'),signinBtn=document.getElementById('signin-btn'),signupBtn=document.getElementById('signup-btn'),logoutBtn=document.getElementById('logout-btn'),userEmailDisplay=document.getElementById('user-email-display'),toast=document.getElementById('toast');
   
   let toastTimeout;
@@ -109,7 +79,7 @@ button:disabled{opacity:.6}
     signinBtn.textContent='Signing in...';
     signinBtn.disabled=true;
     
-    const{data,error}=await supabase.auth.signInWithPassword({email,password});
+    const{data,error}=await supabaseClient.auth.signInWithPassword({email,password});
     
     signinBtn.textContent='Sign In';
     signinBtn.disabled=false;
@@ -126,7 +96,7 @@ button:disabled{opacity:.6}
     signupBtn.textContent='Creating...';
     signupBtn.disabled=true;
     
-    const{data,error}=await supabase.auth.signUp({email,password});
+    const{data,error}=await supabaseClient.auth.signUp({email,password});
     
     signupBtn.textContent='Sign Up';
     signupBtn.disabled=false;
@@ -140,7 +110,7 @@ button:disabled{opacity:.6}
   }
   
   async function handleLogout(){
-    const{error}=await supabase.auth.signOut();
+    const{error}=await supabaseClient.auth.signOut();
     if(error)showToast('Error logging out');
     else{showToast('Logged out');showAuth()}
   }
@@ -150,12 +120,12 @@ button:disabled{opacity:.6}
   logoutBtn.addEventListener('click',handleLogout);
 
   async function checkSession(){
-    const{data:{session}}=await supabase.auth.getSession();
+    const{data:{session}}=await supabaseClient.auth.getSession();
     if(session&&session.user)showHome(session.user.email);
     else showAuth();
   }
   
-  supabase.auth.onAuthStateChange((_e,s)=>{if(s&&s.user)showHome(s.user.email);else showAuth()});
+  supabaseClient.auth.onAuthStateChange((_e,s)=>{if(s&&s.user)showHome(s.user.email);else showAuth()});
   
   checkSession();
 </script>
