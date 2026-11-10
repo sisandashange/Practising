@@ -4,7 +4,24 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Bouncy 🎉</title>
-  <link rel="stylesheet" href="style.css" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
+    body { background: #f7f7f7; color: #222; }
+    .screen { max-width: 600px; margin: 0 auto; padding: 24px; }
+    .hidden { display: none !important; }
+    h1 { font-size: 28px; margin-bottom: 8px; }
+    .tagline { color: #888; margin-bottom: 24px; }
+    input, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; margin-bottom: 12px; background: #fff; }
+    textarea { resize: vertical; min-height: 80px; }
+    button { width: 100%; padding: 12px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; background: #ff6b6b; color: #fff; cursor: pointer; margin-bottom: 10px; }
+    button.alt { background: #4ecdc4; }
+    .msg { color: #ff6b6b; text-align: center; margin-top: 16px; font-weight: bold; }
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    header button { width: auto; padding: 8px 16px; font-size: 14px; background: #333; }
+    .composer { margin-bottom: 24px; }
+    .post { background: #fff; padding: 16px; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    .post .time { font-size: 12px; color: #999; margin-top: 8px; }
+  </style>
 </head>
 <body>
   <div id="auth-screen" class="screen">
@@ -27,10 +44,110 @@
       <button id="post-btn">Post</button>
     </div>
     <div id="feed"></div>
-    <p id="feed-empty" class="msg">No posts yet. Be the first! 🚀</p>
+    <p id="feed-empty" class="msg" style="color: #999;">No posts yet. Be the first! 🚀</p>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js"></script>
+  <script>
+    // 1. Setup Supabase
+    const SUPABASE_URL = 'https://lakupnehsetdazezlsrs.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_3ePLMRIKVNms7Qi461FQXw_x2TGc75s';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // 2. Get HTML elements
+    const authScreen = document.getElementById('auth-screen');
+    const feedScreen = document.getElementById('feed-screen');
+    const feedEl = document.getElementById('feed');
+    const feedEmpty = document.getElementById('feed-empty');
+    const authMsg = document.getElementById('auth-msg');
+    let currentUser = null;
+
+    // 3. Sign In function
+    window.signIn = async function() {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      authMsg.textContent = 'Loading...';
+      authMsg.style.color = '#333';
+
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      
+      if (error) {
+        authMsg.textContent = 'Error: ' + error.message;
+        alert('Login Error: ' + error.message);
+      } else {
+        authMsg.textContent = 'Success!';
+      }
+    };
+
+    // 4. Sign Up function
+    window.signUp = async function() {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      authMsg.textContent = 'Creating account...';
+      authMsg.style.color = '#333';
+
+      const { error } = await supabase.auth.signUp({ email, password });
+      
+      if (error) {
+        authMsg.textContent = 'Error: ' + error.message;
+        alert('Sign Up Error: ' + error.message);
+      } else {
+        authMsg.textContent = 'Account created! Now click Sign In.';
+        alert('Account created! Now click Sign In.');
+      }
+    };
+
+    // 5. Logout
+    window.logout = async function() {
+      await supabase.auth.signOut();
+    };
+
+    // 6. Add Post
+    window.addPost = async function() {
+      const input = document.getElementById('post-input');
+      const content = input.value.trim();
+      if (!content || !currentUser) return;
+      
+      const { error } = await supabase.from('posts').insert({ content, user_id: currentUser.id });
+      if (error) alert('Post failed: ' + error.message);
+      else input.value = '';
+    };
+
+    // 7. Load Posts
+    async function loadPosts() {
+      const { data, error } = await supabase.from('posts').select('*').order('created_at', { ascending: false });
+      if (error) { console.error(error); return; }
+      
+      feedEl.innerHTML = '';
+      feedEmpty.style.display = data.length ? 'none' : 'block';
+      
+      data.forEach((p) => {
+        const div = document.createElement('div');
+        div.className = 'post';
+        div.innerHTML = `<div>${p.content}</div><div class="time">${new Date(p.created_at).toLocaleString()}</div>`;
+        feedEl.appendChild(div);
+      });
+    }
+
+    // 8. Button Click Listeners
+    document.getElementById('signin-btn').addEventListener('click', window.signIn);
+    document.getElementById('signup-btn').addEventListener('click', window.signUp);
+    document.getElementById('logout-btn').addEventListener('click', window.logout);
+    document.getElementById('post-btn').addEventListener('click', window.addPost);
+
+    // 9. Check Login State
+    supabase.auth.onAuthStateChange((_event, session) => {
+      currentUser = session?.user || null;
+      
+      if (currentUser) {
+        authScreen.classList.add('hidden');
+        feedScreen.classList.remove('hidden');
+        loadPosts();
+      } else {
+        authScreen.classList.remove('hidden');
+        feedScreen.classList.add('hidden');
+      }
+    });
+  </script>
 </body>
 </html>
