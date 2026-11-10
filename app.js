@@ -19,18 +19,32 @@ function showScreen(loggedIn) {
 async function signIn() {
   const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value;
-  authMsg.textContent = '';
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) authMsg.textContent = error.message;
+  authMsg.textContent = 'Loading...';
+  
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  
+  if (error) {
+    authMsg.textContent = 'Error: ' + error.message;
+    alert('Login Failed: ' + error.message); // POPUP FOR YOU TO SEE
+  } else {
+    authMsg.textContent = 'Success!';
+  }
 }
 
 async function signUp() {
   const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value;
-  authMsg.textContent = '';
-  const { error } = await supabase.auth.signUp({ email, password });
-  if (error) authMsg.textContent = error.message;
-  else authMsg.textContent = 'Check your email to confirm, or just sign in if confirmation is off.';
+  authMsg.textContent = 'Creating account...';
+  
+  const { data, error } = await supabase.auth.signUp({ email, password });
+  
+  if (error) {
+    authMsg.textContent = 'Error: ' + error.message;
+    alert('Sign Up Failed: ' + error.message); // POPUP FOR YOU TO SEE
+  } else {
+    authMsg.textContent = 'Account created! You can now sign in.';
+    alert('Account created successfully! Click Sign In.');
+  }
 }
 
 async function logout() {
@@ -42,7 +56,11 @@ async function loadPosts() {
     .from('posts')
     .select('*')
     .order('created_at', { ascending: false });
-  if (error) { console.error(error); return; }
+    
+  if (error) { 
+    alert('Error loading posts: ' + error.message);
+    return; 
+  }
   renderPosts(data || []);
 }
 
@@ -68,8 +86,9 @@ async function addPost() {
   const input = document.getElementById('post-input');
   const content = input.value.trim();
   if (!content || !currentUser) return;
+  
   const { error } = await supabase.from('posts').insert({ content, user_id: currentUser.id });
-  if (error) alert(error.message);
+  if (error) alert('Post failed: ' + error.message);
   else input.value = '';
 }
 
