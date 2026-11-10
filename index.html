@@ -1,77 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bouncy v2 🎉</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
-    body { background: #f7f7f7; color: #222; }
-    .screen { max-width: 600px; margin: 0 auto; padding: 24px; }
-    .hidden { display: none !important; }
-    h1 { font-size: 28px; margin-bottom: 8px; }
-    input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; margin-bottom: 12px; }
-    button { width: 100%; padding: 12px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; background: #ff6b6b; color: #fff; margin-bottom: 10px; }
-    button.alt { background: #4ecdc4; }
-    .msg { color: #ff6b6b; text-align: center; margin-top: 16px; font-weight: bold; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bouncy - Where ideas bounce</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
+body{background:#0F0F0F;color:#fff;min-height:100vh}
+.screen{max-width:420px;margin:0 auto;padding:28px 20px;min-height:100vh;display:flex;flex-direction:column}
+.hidden{display:none!important}
+.logo-container{text-align:center;margin-top:60px;margin-bottom:40px}
+.logo{font-size:44px;font-weight:900;letter-spacing:-1px}
+.ball{display:inline-block;width:16px;height:16px;background:#FF6B35;border-radius:50%;margin-left:4px;animation:bounce 1s infinite alternate}
+@keyframes bounce{to{transform:translateY(-8px)}}
+.tagline{color:#999;margin-top:8px;font-size:16px}
+input{width:100%;padding:16px;border:1px solid #2a2a2a;background:#1a1a1a;color:#fff;border-radius:14px;font-size:16px;margin-bottom:12px;outline:none}
+input:focus{border-color:#FF6B35}
+button{width:100%;padding:16px;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:10px}
+.btn-black{background:#fff;color:#000}
+.btn-outline{background:transparent;color:#fff;border:1.5px solid #333}
+button:disabled{opacity:.6}
+#error-msg{color:#FF6B6B;text-align:center;font-size:14px;min-height:20px;margin:8px 0;display:none}
+.header{display:flex;justify-content:space-between;align-items:center;padding:10px 0 20px;border-bottom:1px solid #222}
+.header h1{font-size:28px}
+.btn-logout{width:auto;padding:8px 16px;background:#222;color:#fff;font-size:14px;margin:0}
+.welcome{background:#1a1a1a;border-radius:16px;padding:18px;margin:18px 0}
+.welcome small{color:#999}
+.welcome b{display:block;margin-top:4px;word-break:break-all}
+.post{background:#1a1a1a;border-radius:16px;padding:16px;margin-bottom:12px}
+.post b{font-size:15px}.post p{color:#ccc;font-size:14px;margin-top:6px;line-height:1.5}
+.toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);background:#fff;color:#000;padding:12px 20px;border-radius:30px;font-weight:700;font-size:14px;opacity:0;transition:.3s;pointer-events:none;z-index:99;white-space:nowrap}
+.toast.show{opacity:1}
+</style>
 </head>
 <body>
-  <div id="auth-screen" class="screen">
-    <h1>Bouncy v2 🎉</h1>
-    <input id="email" type="email" placeholder="Email" />
-    <input id="password" type="password" placeholder="Password (6+ chars)" />
-    <button id="signin-btn">Sign In</button>
-    <button id="signup-btn" class="alt">Sign Up</button>
-    <p id="auth-msg" class="msg"></p>
-  </div>
+<div id="toast" class="toast"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
-    // THIS WILL POP UP IMMEDIATELY IF THE CODE IS RUNNING
-    alert("BOUNCY V2 IS ALIVE!");
+<div id="auth-screen" class="screen">
+  <div class="logo-container"><div class="logo">Bouncy <span class="ball"></span></div><div class="tagline">Where ideas bounce.</div></div>
+  <input id="email" type="email" placeholder="Email" autocomplete="email" />
+  <input id="password" type="password" placeholder="Password (6+ chars)" />
+  <button id="signin-btn" class="btn-black">Sign In</button>
+  <button id="signup-btn" class="btn-outline">Sign Up</button>
+  <p id="error-msg"></p>
+  <p style="text-align:center;color:#666;font-size:13px;margin-top:20px">Test account? Sign Up with any email<br>like test123@gmail.com / 123456</p>
+</div>
 
-    const SUPABASE_URL = 'https://lakupnehsetdazezlsrs.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_3ePLMRIKVNms7Qi461FQXw_x2TGc75s';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+<div id="home-screen" class="screen hidden">
+  <div class="header"><h1>Bouncy</h1><button id="logout-btn" class="btn-logout">Logout</button></div>
+  <div class="welcome"><small>Welcome back 👋</small><b id="user-email-display"></b></div>
+  <div class="post"><b>🔥 Sisa</b><p>First bounce! Bouncy is live from Pietermaritzburg. Where ideas bounce.</p></div>
+  <div class="post"><b>💡 ZYRE</b><p>New drop soon. White tee, red logo. R250. Who wants one?</p></div>
+  <div class="post"><b>🎉 Bouncy Team</b><p>Welcome to Bouncy v3. This is your feed. Post, bounce, repeat.</p></div>
+</div>
 
-    const authMsg = document.getElementById('auth-msg');
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// YOUR ACTUAL KEYS ARE INSERTED HERE
+const SUPABASE_URL = 'https://lakupnehsetdazezlsrs.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_3ePLMRIKVNms7Qi461FQXw_x2TGc75s';
 
-    document.getElementById('signin-btn').addEventListener('click', async () => {
-      alert("Sign In button clicked!");
-      authMsg.textContent = "Loading...";
-      
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
-
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      
-      if (error) {
-        authMsg.textContent = "Error: " + error.message;
-        alert("Supabase says: " + error.message);
-      } else {
-        authMsg.textContent = "Success!";
-        alert("Success! You are logged in.");
-      }
-    });
-
-    document.getElementById('signup-btn').addEventListener('click', async () => {
-      alert("Sign Up button clicked!");
-      authMsg.textContent = "Creating...";
-      
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
-
-      const { error } = await supabase.auth.signUp({ email, password });
-      
-      if (error) {
-        authMsg.textContent = "Error: " + error.message;
-        alert("Supabase says: " + error.message);
-      } else {
-        authMsg.textContent = "Account created! Go sign in.";
-        alert("Account created successfully!");
-      }
-    });
-  </script>
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const authScreen=document.getElementById('auth-screen'),homeScreen=document.getElementById('home-screen'),emailInput=document.getElementById('email'),passwordInput=document.getElementById('password'),errorMsg=document.getElementById('error-msg'),signinBtn=document.getElementById('signin-btn'),signupBtn=document.getElementById('signup-btn'),logoutBtn=document.getElementById('logout-btn'),userEmailDisplay=document.getElementById('user-email-display'),toast=document.getElementById('toast');
+let toastTimeout;
+function showToast(m){clearTimeout(toastTimeout);toast.textContent=m;toast.classList.add('show');toastTimeout=setTimeout(()=>toast.classList.remove('show'),3000)}
+function showError(m){errorMsg.textContent=m;errorMsg.style.display='block'}
+function hideError(){errorMsg.textContent='';errorMsg.style.display='none'}
+function validate(e,p){if(!e){showError('Enter email');return false}if(!p||p.length<6){showError('Password must be 6+ chars');return false}return true}
+function showHome(email){authScreen.classList.add('hidden');homeScreen.classList.remove('hidden');userEmailDisplay.textContent=email;hideError();emailInput.value='';passwordInput.value=''}
+function showAuth(){homeScreen.classList.add('hidden');authScreen.classList.remove('hidden');hideError()}
+async function handleSignIn(){hideError();const email=emailInput.value.trim(),password=passwordInput.value;if(!validate(email,password))return;signinBtn.textContent='Signing in...';signinBtn.disabled=true;const{data,error}=await supabase.auth.signInWithPassword({email,password});signinBtn.textContent='Sign In';signinBtn.disabled=false;if(error)showError(error.message);else{showToast('Welcome back!');showHome(data.user.email)}}
+async function handleSignUp(){hideError();const email=emailInput.value.trim(),password=passwordInput.value;if(!validate(email,password))return;signupBtn.textContent='Creating...';signupBtn.disabled=true;const{data,error}=await supabase.auth.signUp({email,password});signupBtn.textContent='Sign Up';signupBtn.disabled=false;if(error)showError(error.message);else{showToast('Account created!');if(data.session)showHome(data.user.email)}}
+async function handleLogout(){const{error}=await supabase.auth.signOut();if(error)showToast('Error logging out');else{showToast('Logged out');showAuth()}}
+signinBtn.addEventListener('click',handleSignIn);signupBtn.addEventListener('click',handleSignUp);logoutBtn.addEventListener('click',handleLogout);
+async function checkSession(){const{data:{session}}=await supabase.auth.getSession();if(session&&session.user)showHome(session.user.email);else showAuth()}
+supabase.auth.onAuthStateChange((_e,s)=>{if(s&&s.user)showHome(s.user.email);else showAuth()});
+checkSession();
+</script>
 </body>
 </html>
