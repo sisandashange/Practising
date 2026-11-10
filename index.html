@@ -3,133 +3,134 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-<title>Bouncy</title>
+<title>Bouncy Chat</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <style>
+/* --- WHATSAPP DARK MODE COLORS --- */
 :root {
-  --bg: #000000; 
-  --surface: #121212;
-  --surface-light: #1C1C1E;
-  --fg: #FFFFFF;
-  --mute: #8E8E93;
-  --line: #2C2C2E;
-  --brand: #FF6B35;
+  --bg: #0B141A; 
+  --header: #1F2C34;
+  --surface: #202C33;
+  --bubble-out: #005C4B;
+  --bubble-in: #202C33;
+  --fg: #E9EDEF;
+  --mute: #8696A0;
+  --line: #222D34;
+  --brand: #00A884; /* WhatsApp Green */
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; font-family: var(--font); }
-body { background: var(--bg); color: var(--fg); height: 100dvh; width: 100vw; display: flex; justify-content: center; overflow: hidden; }
+body { background: #000; color: var(--fg); height: 100dvh; width: 100vw; display: flex; justify-content: center; overflow: hidden; }
 #app { width: 100%; max-width: 480px; height: 100dvh; display: flex; flex-direction: column; position: relative; background: var(--bg); overflow: hidden; }
 .hide { display: none !important; }
+
 button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; transition: opacity 0.2s; }
 button:active { opacity: 0.7; }
-input, textarea { width: 100%; padding: 16px; border: 1px solid var(--line); background: var(--surface-light); color: var(--fg); border-radius: 8px; font-size: 16px; margin-bottom: 12px; outline: none; }
-input:focus, textarea:focus { border-color: #555; }
+input, textarea { width: 100%; padding: 14px; border: none; background: var(--surface); color: var(--fg); border-radius: 24px; font-size: 16px; outline: none; }
 
-.header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--bg); border-bottom: 1px solid var(--line); z-index: 10; }
-.logo { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; display: flex; align-items: center; gap: 6px; }
-.brand-dot { width: 10px; height: 10px; background: var(--brand); border-radius: 50%; }
-.live-btn { background: var(--surface-light); padding: 6px 12px; border-radius: 8px; font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 6px; }
-.live-dot { width: 8px; height: 8px; background: #FF3B30; border-radius: 50%; }
+/* --- HEADER --- */
+.header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--header); z-index: 10; height: 60px; }
+.logo { font-size: 20px; font-weight: 600; color: var(--fg); }
+.header-actions { display: flex; gap: 16px; align-items: center; color: var(--fg); }
+.header-actions svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; }
 
-.nav-wrapper { background: var(--bg); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom); z-index: 20; }
-nav { display: flex; justify-content: space-around; align-items: center; padding: 10px 0; }
-nav button { color: var(--mute); display: flex; flex-direction: column; align-items: center; font-size: 10px; font-weight: 500; gap: 4px; flex: 1; }
-nav button.on { color: var(--fg); }
-nav button svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-nav .plus-btn svg { width: 26px; height: 26px; }
+/* --- CHAT LIST --- */
+#chat-list-screen { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+.chat-item { display: flex; align-items: center; padding: 12px 16px; gap: 12px; cursor: pointer; transition: background 0.2s; }
+.chat-item:active { background: var(--surface); }
+.avatar { width: 48px; height: 48px; border-radius: 50%; background: var(--surface); display: grid; place-items: center; font-weight: 600; font-size: 20px; color: var(--fg); flex-shrink: 0; }
+.chat-info { flex: 1; border-bottom: 1px solid var(--line); padding-bottom: 12px; display: flex; flex-direction: column; justify-content: center; height: 48px; }
+.chat-name { font-size: 16px; font-weight: 500; color: var(--fg); margin-bottom: 4px; }
+.chat-preview { font-size: 14px; color: var(--mute); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-.feed-container { flex: 1; overflow-y: auto; padding: 16px; padding-bottom: 100px; }
-.post-card { background: var(--bg); border-bottom: 1px solid var(--line); padding-bottom: 16px; margin-bottom: 16px; }
-.post-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-.avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--surface-light); border: 1px solid var(--line); display: grid; place-items: center; font-weight: 600; font-size: 16px; }
-.post-meta b { display: block; font-size: 14px; }
-.post-meta span { font-size: 12px; color: var(--mute); }
-.post-image { width: 100%; border-radius: 4px; margin-top: 12px; object-fit: cover; max-height: 400px; border: 1px solid var(--line); }
-.post-actions { display: flex; gap: 24px; margin-top: 16px; color: var(--fg); font-size: 14px; font-weight: 600; }
+/* FAB Button */
+.fab { position: absolute; bottom: 24px; right: 24px; width: 56px; height: 56px; border-radius: 16px; background: var(--brand); display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 20; }
+.fab svg { width: 24px; height: 24px; fill: #fff; }
 
-#feed { scroll-snap-type: y mandatory; overflow-y: auto; height: 100%; background: #000; }
-.clip { height: 100dvh; scroll-snap-align: start; position: relative; display: flex; align-items: center; justify-content: center; }
-.clip video { width: 100%; height: 100%; object-fit: contain; }
-.clip-overlay { position: absolute; bottom: 90px; left: 16px; right: 80px; color: #fff; }
-.clip-overlay b { font-size: 16px; display: block; margin-bottom: 6px; font-weight: 700; }
-.clip-overlay p { font-size: 14px; line-height: 1.4; color: #ddd; }
-.side-actions { position: absolute; right: 12px; bottom: 90px; display: flex; flex-direction: column; gap: 24px; align-items: center; color: #fff; }
-.side-actions button { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; }
-.side-actions svg { width: 28px; height: 28px; fill: #fff; }
+/* --- CHAT ROOM --- */
+#chat-room-screen { position: absolute; inset: 0; background: var(--bg); z-index: 100; display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.3s ease; }
+#chat-room-screen.open { transform: translateX(0); }
+.chat-header { display: flex; align-items: center; padding: 10px 16px; background: var(--header); gap: 12px; height: 60px; }
+.back-btn { color: var(--fg); font-size: 24px; font-weight: 300; padding-right: 8px; }
+.chat-header-info { display: flex; flex-direction: column; }
+.chat-header-name { font-size: 16px; font-weight: 500; }
+.chat-header-status { font-size: 12px; color: var(--mute); }
 
+.messages-area { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 8px; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-blend-mode: overlay; background-size: cover; }
+.msg { max-width: 75%; padding: 8px 12px; border-radius: 8px; font-size: 15px; line-height: 1.4; position: relative; word-wrap: break-word; }
+.msg.sent { background: var(--bubble-out); align-self: flex-end; border-top-right-radius: 0; }
+.msg.received { background: var(--bubble-in); align-self: flex-start; border-top-left-radius: 0; }
+.msg-time { font-size: 11px; color: rgba(255,255,255,0.6); text-align: right; margin-top: 4px; }
+
+.input-area { display: flex; padding: 8px 12px; gap: 8px; background: var(--header); align-items: center; }
+.input-area input { flex: 1; padding: 12px 16px; }
+.send-btn { width: 48px; height: 48px; border-radius: 50%; background: var(--brand); display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
+.send-btn svg { width: 22px; height: 22px; fill: #fff; margin-left: 4px; }
+
+/* --- MODALS & AUTH --- */
 .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 50; display: none; opacity: 0; transition: opacity 0.3s; }
 .sheet-overlay.open { display: block; opacity: 1; }
-.sheet { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-radius: 16px 16px 0 0; padding: 24px 20px calc(24px + env(safe-area-inset-bottom)); z-index: 51; transform: translateY(100%); transition: transform 0.3s ease-out; max-height: 90vh; overflow-y: auto; }
+.sheet { position: fixed; bottom: 0; left: 0; right: 0; background: var(--header); border-radius: 16px 16px 0 0; padding: 24px 20px calc(24px + env(safe-area-inset-bottom)); z-index: 51; transform: translateY(100%); transition: transform 0.3s ease-out; max-height: 90vh; overflow-y: auto; }
 .sheet.open { transform: translateY(0); }
-.sheet-drag { width: 36px; height: 5px; background: #333; border-radius: 3px; margin: 0 auto 20px; }
-.sheet h2 { font-size: 20px; font-weight: 700; margin-bottom: 16px; letter-spacing: -0.5px; }
-
-.btn-primary { background: var(--fg); color: var(--bg); width: 100%; padding: 14px; border-radius: 8px; font-weight: 600; font-size: 16px; margin-top: 10px; }
-.btn-secondary { background: transparent; border: 1px solid var(--line); color: var(--fg); width: 100%; padding: 14px; border-radius: 8px; font-weight: 600; font-size: 16px; margin-top: 10px; }
-
-#camera-screen { position: fixed; inset: 0; background: #000; z-index: 100; display: none; flex-direction: column; }
-#camera-screen.open { display: flex; }
-#camera-preview { flex: 1; width: 100%; object-fit: cover; }
-.camera-controls { position: absolute; bottom: 40px; left: 0; right: 0; display: flex; justify-content: center; align-items: center; }
-.record-btn { width: 72px; height: 72px; border-radius: 50%; border: 4px solid #fff; background: rgba(255, 255, 255, 0.3); display: flex; justify-content: center; align-items: center; padding: 0; }
-.record-inner { width: 56px; height: 56px; border-radius: 50%; background: #FF3B30; transition: all 0.2s; }
-.record-btn.recording .record-inner { width: 24px; height: 24px; border-radius: 4px; }
-.camera-close { position: absolute; top: 40px; left: 20px; color: #fff; font-size: 32px; font-weight: 300; }
+.sheet-drag { width: 36px; height: 5px; background: #444; border-radius: 3px; margin: 0 auto 20px; }
+.sheet h2 { font-size: 20px; font-weight: 600; margin-bottom: 16px; color: var(--fg); }
+.btn-primary { background: var(--brand); color: #fff; width: 100%; padding: 14px; border-radius: 8px; font-weight: 600; font-size: 16px; margin-top: 10px; }
+.btn-secondary { background: transparent; border: 1px solid var(--mute); color: var(--fg); width: 100%; padding: 14px; border-radius: 8px; font-weight: 600; font-size: 16px; margin-top: 10px; }
 </style>
 </head>
 <body>
 
-<div id="app" class="watch">
-  <header class="header hide" id="main-header">
-    <div class="logo">Bouncy <div class="brand-dot"></div></div>
-    <button class="live-btn" onclick="openLive()"><div class="live-dot"></div> LIVE</button>
+<div id="app">
+  <!-- MAIN HEADER -->
+  <header class="header" id="main-header">
+    <div class="logo">Bouncy</div>
+    <div class="header-actions">
+      <svg viewBox="0 0 24 24" onclick="openContacts()"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+      <svg viewBox="0 0 24 24" onclick="handleLogout()" style="stroke: #FF3B30;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+    </div>
   </header>
 
-  <main style="flex: 1; position: relative; overflow: hidden;">
-    <div id="feed" class="hide" style="height:100%;"></div>
-    <div id="trend" class="hide" style="height:100%; overflow-y:auto;"></div>
-    <div id="me" class="hide" style="height:100%; overflow-y:auto;"></div>
-  </main>
+  <!-- CHAT LIST SCREEN -->
+  <div id="chat-list-screen">
+    <div id="chat-list-container">
+      <div style="text-align: center; padding: 40px 20px; color: var(--mute);" id="empty-chats">
+        No chats yet.<br>Tap the green button to find friends.
+      </div>
+    </div>
+  </div>
 
-  <div class="nav-wrapper hide" id="main-nav">
-    <nav>
-      <button data-v="feed" class="on" onclick="switchTab('feed')">
-        <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-        Watch
+  <!-- FLOATING ACTION BUTTON (NEW CHAT) -->
+  <button class="fab" onclick="openContacts()">
+    <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+  </button>
+
+  <!-- CHAT ROOM SCREEN -->
+  <div id="chat-room-screen">
+    <div class="chat-header">
+      <button class="back-btn" onclick="closeChat()">←</button>
+      <div class="avatar" id="chat-avatar" style="width: 36px; height: 36px; font-size: 16px;">U</div>
+      <div class="chat-header-info">
+        <div class="chat-header-name" id="chat-name">User</div>
+        <div class="chat-header-status">online</div>
+      </div>
+    </div>
+    
+    <div class="messages-area" id="messages-area"></div>
+    
+    <div class="input-area">
+      <input type="text" id="message-input" placeholder="Message" onkeypress="handleEnter(event)" />
+      <button class="send-btn" onclick="sendMessage()">
+        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
       </button>
-      <button data-v="trend" onclick="switchTab('trend')">
-        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
-        Explore
-      </button>
-      <button class="plus-btn" onclick="openCamera()">
-        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-      </button>
-      <button onclick="openChats()">
-        <svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg>
-        Chats
-      </button>
-      <button data-v="me" onclick="switchTab('me')">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-5 15-5 16 0"/></svg>
-        Me
-      </button>
-    </nav>
+    </div>
   </div>
 </div>
 
+<!-- MODALS -->
 <div class="sheet-overlay" id="sheet-overlay" onclick="closeSheet()"></div>
 <div class="sheet" id="sheet">
   <div class="sheet-drag"></div>
   <div id="sheet-content"></div>
-</div>
-
-<div id="camera-screen">
-  <button class="camera-close" onclick="closeCamera()">×</button>
-  <video id="camera-preview" autoplay playsinline muted></video>
-  <div class="camera-controls">
-    <button class="record-btn" id="record-btn" onclick="toggleRecording()">
-      <div class="record-inner"></div>
-    </button>
-  </div>
 </div>
 
 <script>
@@ -138,30 +139,29 @@ const SUPABASE_ANON_KEY = 'sb_publishable_3ePLMRIKVNms7Qi461FQXw_x2TGc75s';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
-let userProfile = null;
-let mediaRecorder = null;
-let recordedChunks = [];
-let cameraStream = null;
+let activeChatUser = null; // The person you are currently talking to
+let realtimeChannel = null;
+let allUsers = [];
 
+// --- INIT ---
 window.addEventListener('load', async () => {
   const { data: { session } } = await sb.auth.getSession();
   if (session) {
     currentUser = session.user;
-    await loadProfile();
-    showMainApp();
+    initApp();
   } else {
     showAuthSheet();
   }
 });
 
+// --- AUTH ---
 function showAuthSheet() {
   document.getElementById('main-header').classList.add('hide');
-  document.getElementById('main-nav').classList.add('hide');
   const content = document.getElementById('sheet-content');
   content.innerHTML = `
-    <h2>Log in to Bouncy</h2>
-    <input type="email" id="auth-email" placeholder="Email" />
-    <input type="password" id="auth-password" placeholder="Password" />
+    <h2>Log in to Bouncy Chat</h2>
+    <input type="email" id="auth-email" placeholder="Email" style="margin-bottom: 12px;" />
+    <input type="password" id="auth-password" placeholder="Password" style="margin-bottom: 12px;" />
     <p id="auth-error" style="color: #FF3B30; font-size: 13px; margin-bottom: 10px; display: none;"></p>
     <button class="btn-primary" onclick="handleLogin()">Log In</button>
     <button class="btn-secondary" onclick="handleSignUp()">Create Account</button>
@@ -177,7 +177,7 @@ async function handleLogin() {
   err.style.display = 'none';
   const { data, error } = await sb.auth.signInWithPassword({ email, password });
   if (error) { err.textContent = error.message; err.style.display = 'block'; } 
-  else { currentUser = data.user; await loadProfile(); closeSheet(); showMainApp(); }
+  else { currentUser = data.user; closeSheet(); initApp(); }
 }
 
 async function handleSignUp() {
@@ -188,233 +188,218 @@ async function handleSignUp() {
   const { data, error } = await sb.auth.signUp({ email, password });
   if (error) { err.textContent = error.message; err.style.display = 'block'; } 
   else {
-    if(data.session) { currentUser = data.user; await loadProfile(); closeSheet(); showMainApp(); } 
+    if(data.session) { currentUser = data.user; closeSheet(); initApp(); } 
     else { err.textContent = "Check your email to confirm your account!"; err.style.display = 'block'; }
   }
 }
 
-async function loadProfile() {
-  if(!currentUser) return;
-  const { data, error } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
-  if (error || !data) {
-    const defaultUsername = currentUser.email.split('@')[0];
-    const { data: newProfile } = await sb.from('profiles').insert([{ id: currentUser.id, username: defaultUsername, display_name: defaultUsername }]).select().single();
-    userProfile = newProfile;
-  } else { userProfile = data; }
-}
+async function handleLogout() { await sb.auth.signOut(); window.location.reload(); }
 
-function showMainApp() {
+// --- APP LOGIC ---
+async function initApp() {
   document.getElementById('main-header').classList.remove('hide');
-  document.getElementById('main-nav').classList.remove('hide');
-  switchTab('feed');
+  await fetchAllUsers();
+  await loadRecentChats();
+  subscribeToGlobalMessages();
 }
 
-function switchTab(tab) {
-  document.querySelectorAll('#feed, #trend, #me').forEach(el => el.classList.add('hide'));
-  document.getElementById(tab).classList.remove('hide');
-  document.querySelectorAll('nav button').forEach(b => b.classList.remove('on'));
-  const btn = document.querySelector(`nav button[data-v="${tab}"]`);
-  if(btn) btn.classList.add('on');
-  if (tab === 'feed') loadVideos();
-  if (tab === 'trend') loadExplore();
-  if (tab === 'me') renderProfile();
+async function fetchAllUsers() {
+  const { data } = await sb.from('profiles').select('id, username').neq('id', currentUser.id);
+  if (data) allUsers = data;
 }
 
-// --- FIXED: Bulletproof Feed Loader ---
-async function loadVideos() {
-  const feed = document.getElementById('feed');
-  feed.innerHTML = '<div style="color:var(--mute); text-align:center; padding-top:50px; font-size:14px;">Loading...</div>';
+function openContacts() {
+  const content = document.getElementById('sheet-content');
+  content.innerHTML = `<h2>Select a contact</h2><div id="contacts-list"></div>`;
   
-  // 1. Get videos (No complex joins that can fail silently)
-  const { data: videos, error: videoError } = await sb.from('videos').select('*').order('created_at', { ascending: false });
+  const list = document.getElementById('contacts-list');
+  if (allUsers.length === 0) {
+    list.innerHTML = '<p style="color:var(--mute);">No other users found. Tell a friend to sign up!</p>';
+  } else {
+    allUsers.forEach(u => {
+      const div = document.createElement('div');
+      div.className = 'chat-item';
+      div.innerHTML = `
+        <div class="avatar">${u.username[0].toUpperCase()}</div>
+        <div class="chat-info" style="border:none;"><div class="chat-name">@${u.username}</div></div>
+      `;
+      div.onclick = () => { closeSheet(); openChat(u.id, u.username); };
+      list.appendChild(div);
+    });
+  }
   
-  if (videoError) {
-    feed.innerHTML = `<div style="color:#FF3B30; text-align:center; padding:20px; font-size:14px;">Database Error: ${videoError.message}</div>`;
+  document.getElementById('sheet-overlay').classList.add('open');
+  document.getElementById('sheet').classList.add('open');
+}
+
+// --- LOAD CHATS ---
+async function loadRecentChats() {
+  // Fetch all messages involving the current user
+  const { data: messages, error } = await sb
+    .from('direct_messages')
+    .select('*')
+    .or(`sender_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`)
+    .order('created_at', { ascending: false });
+
+  const container = document.getElementById('chat-list-container');
+  if (!messages || messages.length === 0) {
+    container.innerHTML = '<div style="text-align: center; padding: 40px 20px; color: var(--mute);" id="empty-chats">No chats yet.<br>Tap the green button to find friends.</div>';
     return;
   }
 
-  if (!videos || videos.length === 0) {
-    feed.innerHTML = '<div style="color:var(--mute); text-align:center; padding-top:100px; font-size:15px;">No videos yet.<br><br><button class="btn-primary" style="width:auto; padding:10px 20px;" onclick="openCamera()">Record First Video</button></div>';
-    return;
-  }
-
-  // 2. Get profiles separately
-  const ownerIds = [...new Set(videos.map(v => v.owner_id))];
-  const { data: profiles } = await sb.from('profiles').select('id, username').in('id', ownerIds);
-  const profileMap = {};
-  if (profiles) profiles.forEach(p => profileMap[p.id] = p);
-
-  feed.innerHTML = '';
-  
-  // 3. Render videos
-  videos.forEach(v => {
-    // Get Public URL for the video file
-    const { data: urlData } = sb.storage.from('videos').getPublicUrl(v.storage_path);
-    const videoUrl = urlData.publicUrl;
-    
-    const authorName = profileMap[v.owner_id]?.username || 'user';
-    
-    const div = document.createElement('div');
-    div.className = 'clip';
-    div.innerHTML = `
-      <video src="${videoUrl}" loop playsinline muted></video>
-      <div class="clip-overlay">
-        <b>@${authorName}</b>
-        <p>${v.caption || ''}</p>
-      </div>
-      <div class="side-actions">
-        <button onclick="likeVideo('${v.id}', ${v.like_count || 0})">
-          <svg viewBox="0 0 24 24"><path d="M12 21s-8-5.2-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.8-8 11-8 11z"/></svg>
-          ${v.like_count || 0}
-        </button>
-        <button>
-          <svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg>
-          ${v.comment_count || 0}
-        </button>
-      </div>
-    `;
-    
-    const vid = div.querySelector('video');
-    // Autoplay when scrolling into view
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting) { 
-          vid.play().catch(err => console.log("Autoplay blocked:", err)); 
-        } else { 
-          vid.pause(); 
-        }
-      });
-    }, { threshold: 0.6 });
-    
-    observer.observe(div);
-    feed.appendChild(div);
+  // Group by unique contact
+  const chatsMap = new Map();
+  messages.forEach(msg => {
+    const otherId = msg.sender_id === currentUser.id ? msg.receiver_id : msg.sender_id;
+    if (!chatsMap.has(otherId)) {
+      chatsMap.set(otherId, msg);
+    }
   });
-}
 
-async function loadExplore() {
-  const trend = document.getElementById('trend');
-  trend.innerHTML = '<div class="feed-container"><h2 style="font-size:24px; font-weight:800; margin-bottom:16px;">Explore</h2></div>';
-  const { data: posts } = await sb.from('posts').select('*, profiles(username)').order('created_at', { ascending: false });
-  const container = trend.querySelector('.feed-container');
-  if(!posts || posts.length === 0) { container.innerHTML += '<p style="color:var(--mute); font-size:15px;">No posts yet.</p>'; return; }
-  posts.forEach(p => {
+  container.innerHTML = '';
+  chatsMap.forEach((lastMsg, otherId) => {
+    const user = allUsers.find(u => u.id === otherId) || { username: 'Unknown User' };
+    const isMine = lastMsg.sender_id === currentUser.id;
+    const preview = (isMine ? 'You: ' : '') + lastMsg.content;
+
     const div = document.createElement('div');
-    div.className = 'post-card';
-    const imgHtml = p.image_path ? `<img src="${sb.storage.from('videos').getPublicUrl(p.image_path).data.publicUrl}" class="post-image">` : '';
+    div.className = 'chat-item';
     div.innerHTML = `
-      <div class="post-header">
-        <div class="avatar">${(p.profiles?.username || 'U')[0].toUpperCase()}</div>
-        <div class="post-meta"><b>@${p.profiles?.username || 'user'}</b><span>Just now</span></div>
+      <div class="avatar">${user.username[0].toUpperCase()}</div>
+      <div class="chat-info">
+        <div class="chat-name">@${user.username}</div>
+        <div class="chat-preview">${preview}</div>
       </div>
-      <p style="font-size:15px; line-height:1.4;">${p.body || ''}</p>
-      ${imgHtml}
     `;
+    div.onclick = () => openChat(otherId, user.username);
     container.appendChild(div);
   });
 }
 
-function renderProfile() {
-  const me = document.getElementById('me');
-  if(!userProfile) return;
-  me.innerHTML = `
-    <div class="feed-container" style="text-align:center; padding-top:40px;">
-      <div class="avatar" style="width: 80px; height: 80px; font-size: 32px; margin: 0 auto 16px;">${userProfile.username[0].toUpperCase()}</div>
-      <h2 style="font-size: 22px; font-weight: 700;">@${userProfile.username}</h2>
-      <p style="color: var(--mute); margin-bottom: 24px; font-size:14px;">${currentUser.email}</p>
-      <button class="btn-secondary" style="width: 80%; margin: 0 auto;" onclick="handleLogout()">Log Out</button>
-    </div>
+// --- CHAT ROOM ---
+async function openChat(userId, username) {
+  activeChatUser = { id: userId, username: username };
+  
+  document.getElementById('chat-avatar').textContent = username[0].toUpperCase();
+  document.getElementById('chat-name').textContent = '@' + username;
+  document.getElementById('chat-room-screen').classList.add('open');
+  document.getElementById('message-input').value = '';
+  
+  await loadMessagesForChat(userId);
+}
+
+function closeChat() {
+  document.getElementById('chat-room-screen').classList.remove('open');
+  activeChatUser = null;
+  loadRecentChats(); // Refresh the list
+}
+
+async function loadMessagesForChat(otherId) {
+  const area = document.getElementById('messages-area');
+  area.innerHTML = '<div style="text-align:center; color:var(--mute); font-size:13px;">Loading messages...</div>';
+  
+  const { data: msgs } = await sb
+    .from('direct_messages')
+    .select('*')
+    .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${otherId}),and(sender_id.eq.${otherId},receiver_id.eq.${currentUser.id})`)
+    .order('created_at', { ascending: true });
+
+  area.innerHTML = '';
+  if (!msgs || msgs.length === 0) {
+    area.innerHTML = '<div style="text-align:center; color:var(--mute); font-size:13px; margin-top:20px;">No messages here yet.<br>Say hello!</div>';
+    return;
+  }
+
+  msgs.forEach(msg => appendMessageBubble(msg));
+  scrollToBottom();
+}
+
+function appendMessageBubble(msg) {
+  const area = document.getElementById('messages-area');
+  const isMe = msg.sender_id === currentUser.id;
+  
+  const time = new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  
+  const div = document.createElement('div');
+  div.className = `msg ${isMe ? 'sent' : 'received'}`;
+  div.innerHTML = `
+    <div>${msg.content}</div>
+    <div class="msg-time">${time} ${isMe ? '✓✓' : ''}</div>
   `;
+  area.appendChild(div);
 }
 
-async function handleLogout() { await sb.auth.signOut(); window.location.reload(); }
-
-async function openCamera() {
-  const screen = document.getElementById('camera-screen');
-  screen.classList.add('open');
-  try {
-    cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: true });
-    document.getElementById('camera-preview').srcObject = cameraStream;
-  } catch (err) { alert("Camera access denied."); closeCamera(); }
+function scrollToBottom() {
+  const area = document.getElementById('messages-area');
+  area.scrollTop = area.scrollHeight;
 }
 
-function closeCamera() {
-  document.getElementById('camera-screen').classList.remove('open');
-  if(cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
-}
+function handleEnter(e) { if (e.key === 'Enter') sendMessage(); }
 
-function toggleRecording() {
-  const btn = document.getElementById('record-btn');
-  if (mediaRecorder && mediaRecorder.state === 'recording') {
-    mediaRecorder.stop();
-    btn.classList.remove('recording');
-  } else {
-    recordedChunks = [];
-    mediaRecorder = new MediaRecorder(cameraStream, { mimeType: 'video/webm' });
-    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
-    mediaRecorder.onstop = async () => {
-      const blob = new Blob(recordedChunks, { type: 'video/webm' });
-      closeCamera();
-      await promptUpload(blob);
-    };
-    mediaRecorder.start();
-    btn.classList.add('recording');
+async function sendMessage() {
+  const input = document.getElementById('message-input');
+  const text = input.value.trim();
+  if (!text || !activeChatUser) return;
+
+  input.value = ''; // Clear immediately
+
+  // Optimistically add to screen
+  const tempMsg = { sender_id: currentUser.id, content: text, created_at: new Date().toISOString() };
+  appendMessageBubble(tempMsg);
+  scrollToBottom();
+
+  // Insert into Database
+  const { error } = await sb.from('direct_messages').insert([{
+    sender_id: currentUser.id,
+    receiver_id: activeChatUser.id,
+    content: text
+  }]);
+
+  if (error) {
+    alert("Failed to send: " + error.message);
   }
 }
 
-async function promptUpload(blob) {
-  const sheet = document.getElementById('sheet');
-  const content = document.getElementById('sheet-content');
-  content.innerHTML = `
-    <h2>Post Video</h2>
-    <input type="text" id="video-caption" placeholder="Write a caption..." />
-    <p id="upload-status" style="color: var(--mute); font-size: 13px; margin-bottom: 10px;"></p>
-    <button class="btn-primary" id="upload-btn">Share</button>
-  `;
-  document.getElementById('sheet-overlay').classList.add('open');
-  sheet.classList.add('open');
+// --- REAL-TIME LISTENER ---
+function subscribeToGlobalMessages() {
+  if (realtimeChannel) sb.removeChannel(realtimeChannel);
   
-  document.getElementById('upload-btn').onclick = async () => {
-    const caption = document.getElementById('video-caption').value;
-    const status = document.getElementById('upload-status');
-    const btn = document.getElementById('upload-btn');
-    status.textContent = "Uploading... Please wait."; btn.disabled = true;
-    
-    const fileName = `${currentUser.id}/${Date.now()}.webm`;
-    
-    // Upload to Storage
-    const { error: uploadError } = await sb.storage.from('videos').upload(fileName, blob, { contentType: 'video/webm' });
-    if (uploadError) { status.textContent = "Storage Error: " + uploadError.message; btn.disabled = false; return; }
-    
-    // Insert to Database
-    const { error: dbError } = await sb.from('videos').insert([{ owner_id: currentUser.id, storage_path: fileName, caption: caption }]);
-    if (dbError) { status.textContent = "Database Error: " + dbError.message; btn.disabled = false; return; }
-    
-    status.textContent = "Success!";
-    setTimeout(() => { closeSheet(); switchTab('feed'); }, 1000);
-  };
+  realtimeChannel = sb.channel('global-chat')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'direct_messages' }, payload => {
+      const newMsg = payload.new;
+      
+      // Is it for me or from me?
+      const isForMe = newMsg.receiver_id === currentUser.id;
+      const isFromMe = newMsg.sender_id === currentUser.id;
+      
+      if (!isForMe && !isFromMe) return; // Not our chat
+
+      // 1. If we are currently inside this chat room
+      if (activeChatUser) {
+        const isCurrentChat = (newMsg.sender_id === activeChatUser.id && isForMe) || 
+                              (newMsg.receiver_id === activeChatUser.id && isFromMe);
+        
+        if (isCurrentChat) {
+          // Only append if we didn't just send it (to avoid duplicates)
+          // The quick way is to just reload the messages, but appending is smoother
+          appendMessageBubble(newMsg);
+          scrollToBottom();
+          return;
+        }
+      }
+      
+      // 2. If we are on the chat list, refresh the list
+      if (!activeChatUser) {
+        loadRecentChats();
+      }
+    })
+    .subscribe();
 }
 
+// --- UTILS ---
 function closeSheet() {
   document.getElementById('sheet-overlay').classList.remove('open');
   document.getElementById('sheet').classList.remove('open');
-}
-
-function openChats() {
-  const content = document.getElementById('sheet-content');
-  content.innerHTML = `<h2>Chats</h2><p style="color:var(--mute); font-size:15px;">Messaging coming soon.</p>`;
-  document.getElementById('sheet-overlay').classList.add('open');
-  document.getElementById('sheet').classList.add('open');
-}
-
-function openLive() {
-  const content = document.getElementById('sheet-content');
-  content.innerHTML = `<h2>Live</h2><p style="color:var(--mute); font-size:15px;">Live broadcasting coming soon.</p>`;
-  document.getElementById('sheet-overlay').classList.add('open');
-  document.getElementById('sheet').classList.add('open');
-}
-
-function likeVideo(id, count) {
-  sb.from('videos').update({ like_count: (count || 0) + 1 }).eq('id', id).then(() => loadVideos());
 }
 </script>
 </body>
