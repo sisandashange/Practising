@@ -14,8 +14,9 @@ body{background:#0F0F0F;color:#fff;min-height:100vh}
 .ball{display:inline-block;width:16px;height:16px;background:#FF6B35;border-radius:50%;margin-left:4px;animation:bounce 1s infinite alternate}
 @keyframes bounce{to{transform:translateY(-8px)}}
 .tagline{color:#999;margin-top:8px;font-size:16px}
-input{width:100%;padding:16px;border:1px solid #2a2a2a;background:#1a1a1a;color:#fff;border-radius:14px;font-size:16px;margin-bottom:12px;outline:none}
-input:focus{border-color:#FF6B35}
+input, textarea{width:100%;padding:16px;border:1px solid #2a2a2a;background:#1a1a1a;color:#fff;border-radius:14px;font-size:16px;margin-bottom:12px;outline:none;font-family:inherit}
+textarea{resize:none;height:80px}
+input:focus, textarea:focus{border-color:#FF6B35}
 button{width:100%;padding:16px;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:10px}
 .btn-black{background:#fff;color:#000}
 .btn-outline{background:transparent;color:#fff;border:1.5px solid #333}
@@ -27,8 +28,11 @@ button:disabled{opacity:.6}
 .welcome{background:#1a1a1a;border-radius:16px;padding:18px;margin:18px 0}
 .welcome small{color:#999}
 .welcome b{display:block;margin-top:4px;word-break:break-all}
-.post{background:#1a1a1a;border-radius:16px;padding:16px;margin-bottom:12px}
-.post b{font-size:15px}.post p{color:#ccc;font-size:14px;margin-top:6px;line-height:1.5}
+.post{background:#1a1a1a;border-radius:16px;padding:16px;margin-bottom:12px;border: 1px solid #2a2a2a;}
+.post b{font-size:15px;color:#FF6B35;} /* Highlight the email */
+.post p{color:#ccc;font-size:15px;margin-top:8px;line-height:1.5;word-break:break-word;}
+.post small{color:#666;font-size:12px;display:block;margin-top:12px}
+.empty-feed{text-align:center;color:#666;font-size:14px;margin-top:20px}
 .toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);background:#fff;color:#000;padding:12px 20px;border-radius:30px;font-weight:700;font-size:14px;opacity:0;transition:.3s;pointer-events:none;z-index:99;white-space:nowrap}
 .toast.show{opacity:1}
 </style>
@@ -36,6 +40,7 @@ button:disabled{opacity:.6}
 <body>
 <div id="toast" class="toast"></div>
 
+<!-- AUTH SCREEN -->
 <div id="auth-screen" class="screen">
   <div class="logo-container"><div class="logo">Bouncy <span class="ball"></span></div><div class="tagline">Where ideas bounce.</div></div>
   <input id="email" type="email" placeholder="Email" autocomplete="email" />
@@ -45,89 +50,179 @@ button:disabled{opacity:.6}
   <p id="error-msg"></p>
 </div>
 
+<!-- HOME SCREEN -->
 <div id="home-screen" class="screen hidden">
   <div class="header"><h1>Bouncy</h1><button id="logout-btn" class="btn-logout">Logout</button></div>
-  <div class="welcome"><small>Welcome back 👋</small><b id="user-email-display"></b></div>
-  <div class="post"><b>🔥 Sisa</b><p>First bounce! Bouncy is live from Pietermaritzburg. Where ideas bounce.</p></div>
-  <div class="post"><b>💡 ZYRE</b><p>New drop soon. White tee, red logo. R250. Who wants one?</p></div>
-  <div class="post"><b>🎉 Bouncy Team</b><p>Welcome to Bouncy v3. This is your feed. Post, bounce, repeat.</p></div>
+  
+  <div class="welcome" style="margin-bottom: 20px; display:flex; justify-content:space-between; align-items:center;">
+    <div><small>Signed in as</small><b id="user-email-display" style="font-size:13px"></b></div>
+  </div>
+
+  <!-- POST COMPOSER -->
+  <textarea id="post-input" placeholder="What's bouncing in your mind?"></textarea>
+  <button id="post-btn" class="btn-black" style="margin-bottom: 30px;">Bounce It 🚀</button>
+
+  <!-- FEED -->
+  <div id="feed-container">
+    <p class="empty-feed" id="empty-text">No bounces yet. Be the first!</p>
+    <div id="feed"></div>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
   const SUPABASE_URL = 'https://lakupnehsetdazezlsrs.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_3ePLMRIKVNms7Qi461FQXw_x2TGc75s';
-
-  // FIXED: Renamed to supabaseClient so it doesn't clash with the CDN
   const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   
   const authScreen=document.getElementById('auth-screen'),homeScreen=document.getElementById('home-screen'),emailInput=document.getElementById('email'),passwordInput=document.getElementById('password'),errorMsg=document.getElementById('error-msg'),signinBtn=document.getElementById('signin-btn'),signupBtn=document.getElementById('signup-btn'),logoutBtn=document.getElementById('logout-btn'),userEmailDisplay=document.getElementById('user-email-display'),toast=document.getElementById('toast');
+  const postInput = document.getElementById('post-input'), postBtn = document.getElementById('post-btn'), feed = document.getElementById('feed'), emptyText = document.getElementById('empty-text');
   
+  let currentUser = null;
   let toastTimeout;
+
   function showToast(m){clearTimeout(toastTimeout);toast.textContent=m;toast.classList.add('show');toastTimeout=setTimeout(()=>toast.classList.remove('show'),3000)}
   function showError(m){errorMsg.textContent=m;errorMsg.style.display='block'}
   function hideError(){errorMsg.textContent='';errorMsg.style.display='none'}
   function validate(e,p){if(!e){showError('Enter email');return false}if(!p||p.length<6){showError('Password must be 6+ chars');return false}return true}
-  function showHome(email){authScreen.classList.add('hidden');homeScreen.classList.remove('hidden');userEmailDisplay.textContent=email;hideError();emailInput.value='';passwordInput.value=''}
-  function showAuth(){homeScreen.classList.add('hidden');authScreen.classList.remove('hidden');hideError()}
   
+  function showHome(email){
+    authScreen.classList.add('hidden');
+    homeScreen.classList.remove('hidden');
+    userEmailDisplay.textContent=email;
+    hideError();
+    emailInput.value='';
+    passwordInput.value='';
+    loadPosts(); // Load real posts when logged in
+  }
+  
+  function showAuth(){
+    homeScreen.classList.add('hidden');
+    authScreen.classList.remove('hidden');
+    hideError();
+  }
+  
+  // AUTH FUNCTIONS
   async function handleSignIn(){
     hideError();
     const email=emailInput.value.trim(),password=passwordInput.value;
     if(!validate(email,password))return;
-    
-    signinBtn.textContent='Signing in...';
-    signinBtn.disabled=true;
-    
+    signinBtn.textContent='Signing in...'; signinBtn.disabled=true;
     const{data,error}=await supabaseClient.auth.signInWithPassword({email,password});
-    
-    signinBtn.textContent='Sign In';
-    signinBtn.disabled=false;
-    
+    signinBtn.textContent='Sign In'; signinBtn.disabled=false;
     if(error){ showError(error.message); } 
-    else { showToast('Welcome back!'); showHome(data.user.email); }
+    else { showToast('Welcome back!'); }
   }
   
   async function handleSignUp(){
     hideError();
     const email=emailInput.value.trim(),password=passwordInput.value;
     if(!validate(email,password))return;
-    
-    signupBtn.textContent='Creating...';
-    signupBtn.disabled=true;
-    
+    signupBtn.textContent='Creating...'; signupBtn.disabled=true;
     const{data,error}=await supabaseClient.auth.signUp({email,password});
-    
-    signupBtn.textContent='Sign Up';
-    signupBtn.disabled=false;
-    
+    signupBtn.textContent='Sign Up'; signupBtn.disabled=false;
     if(error){ showError(error.message); } 
-    else { 
-      showToast('Account created!'); 
-      if(data.session) showHome(data.user.email); 
-      else showError("Check your email to confirm account!");
-    }
+    else { showToast('Account created!'); if(data.session) showToast('Logged in!'); else showError("Check your email to confirm!"); }
   }
   
   async function handleLogout(){
-    const{error}=await supabaseClient.auth.signOut();
-    if(error)showToast('Error logging out');
-    else{showToast('Logged out');showAuth()}
+    await supabaseClient.auth.signOut();
+    showAuth();
   }
 
+  // POST FUNCTIONS
+  async function handleCreatePost() {
+    const content = postInput.value.trim();
+    if (!content) return;
+    
+    postBtn.textContent = 'Bouncing...';
+    postBtn.disabled = true;
+
+    const { error } = await supabaseClient
+      .from('posts')
+      .insert([{ content: content, user_id: currentUser.id }]);
+
+    postBtn.textContent = 'Bounce It 🚀';
+    postBtn.disabled = false;
+
+    if (error) {
+      showToast('Error: ' + error.message);
+      console.error(error);
+    } else {
+      postInput.value = '';
+      showToast('Bounced successfully!');
+      loadPosts(); // Refresh feed
+    }
+  }
+
+  async function loadPosts() {
+    const { data, error } = await supabaseClient
+      .from('posts')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      showToast('Failed to load feed');
+      return;
+    }
+
+    feed.innerHTML = '';
+    
+    if (data.length === 0) {
+      emptyText.style.display = 'block';
+    } else {
+      emptyText.style.display = 'none';
+      
+      // Get current user's email for display (since we didn't make a profiles table yet)
+      const currentEmail = currentUser.email;
+
+      data.forEach(post => {
+        const timeString = new Date(post.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + ' • ' + new Date(post.created_at).toLocaleDateString();
+        
+        // If it's the user's post, show "You", otherwise show a generic "Bouncer"
+        const authorName = post.user_id === currentUser.id ? 'You' : 'Bouncer';
+
+        feed.innerHTML += `
+          <div class="post">
+            <b>@${authorName}</b>
+            <p>${post.content}</p>
+            <small>${timeString}</small>
+          </div>
+        `;
+      });
+    }
+  }
+
+  // EVENT LISTENERS
   signinBtn.addEventListener('click',handleSignIn);
   signupBtn.addEventListener('click',handleSignUp);
   logoutBtn.addEventListener('click',handleLogout);
+  postBtn.addEventListener('click', handleCreatePost);
 
+  // SESSION CHECK
   async function checkSession(){
     const{data:{session}}=await supabaseClient.auth.getSession();
-    if(session&&session.user)showHome(session.user.email);
-    else showAuth();
+    if(session && session.user){
+      currentUser = session.user;
+      showHome(session.user.email);
+    } else {
+      showAuth();
+    }
   }
   
-  supabaseClient.auth.onAuthStateChange((_e,s)=>{if(s&&s.user)showHome(s.user.email);else showAuth()});
+  supabaseClient.auth.onAuthStateChange((_e,s)=>{
+    if(s && s.user) {
+      currentUser = s.user;
+      showHome(s.user.email);
+    } else {
+      showAuth();
+    }
+  });
   
-  checkSession();
+  checkApp();
+  async function checkApp() {
+    await checkSession();
+  }
 </script>
 </body>
 </html>
