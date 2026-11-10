@@ -2,70 +2,146 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>Bouncy - Where ideas bounce</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
-body{background:#0F0F0F;color:#fff;min-height:100vh}
-.screen{max-width:420px;margin:0 auto;padding:28px 20px;min-height:100vh;display:flex;flex-direction:column}
-.hidden{display:none!important}
-.logo-container{text-align:center;margin-top:60px;margin-bottom:40px}
-.logo{font-size:44px;font-weight:900;letter-spacing:-1px}
-.ball{display:inline-block;width:16px;height:16px;background:#FF6B35;border-radius:50%;margin-left:4px;animation:bounce 1s infinite alternate}
-@keyframes bounce{to{transform:translateY(-8px)}}
-.tagline{color:#999;margin-top:8px;font-size:16px}
-input, textarea{width:100%;padding:16px;border:1px solid #2a2a2a;background:#1a1a1a;color:#fff;border-radius:14px;font-size:16px;margin-bottom:12px;outline:none;font-family:inherit}
-textarea{resize:none;height:80px}
-input:focus, textarea:focus{border-color:#FF6B35}
-button{width:100%;padding:16px;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:10px}
+body{background:#000;color:#fff;min-height:100vh;display:flex;justify-content:center}
+.app-container{width:100%;max-width:480px;height:100vh;display:flex;flex-direction:column;position:relative;background:#000;overflow:hidden}
+
+/* AUTH SCREEN */
+#auth-screen{padding:28px 20px;display:flex;flex-direction:column;height:100%;justify-content:center}
+.logo-container{text-align:center;margin-bottom:40px}
+.logo{font-size:48px;font-weight:900;letter-spacing:-1.5px}
+.ball{display:inline-block;width:18px;height:18px;background:#FF6B35;border-radius:50%;margin-left:6px;animation:bounce 1s infinite alternate}
+@keyframes bounce{to{transform:translateY(-10px)}}
+.tagline{color:#888;margin-top:10px;font-size:16px;font-weight:500}
+input{width:100%;padding:16px;border:1px solid #333;background:#121212;color:#fff;border-radius:14px;font-size:16px;margin-bottom:12px;outline:none}
+input:focus{border-color:#FF6B35}
+button{width:100%;padding:16px;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:10px;transition:transform 0.1s}
+button:active{transform:scale(0.97)}
 .btn-black{background:#fff;color:#000}
 .btn-outline{background:transparent;color:#fff;border:1.5px solid #333}
-button:disabled{opacity:.6}
 #error-msg{color:#FF6B6B;text-align:center;font-size:14px;min-height:20px;margin:8px 0;display:none}
-.header{display:flex;justify-content:space-between;align-items:center;padding:10px 0 20px;border-bottom:1px solid #222}
-.header h1{font-size:28px}
-.btn-logout{width:auto;padding:8px 16px;background:#222;color:#fff;font-size:14px;margin:0}
-.welcome{background:#1a1a1a;border-radius:16px;padding:18px;margin:18px 0}
-.welcome small{color:#999}
-.welcome b{display:block;margin-top:4px;word-break:break-all}
-.post{background:#1a1a1a;border-radius:16px;padding:16px;margin-bottom:12px;border: 1px solid #2a2a2a;}
-.post b{font-size:15px;color:#FF6B35;} /* Highlight the email */
-.post p{color:#ccc;font-size:15px;margin-top:8px;line-height:1.5;word-break:break-word;}
-.post small{color:#666;font-size:12px;display:block;margin-top:12px}
-.empty-feed{text-align:center;color:#666;font-size:14px;margin-top:20px}
-.toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);background:#fff;color:#000;padding:12px 20px;border-radius:30px;font-weight:700;font-size:14px;opacity:0;transition:.3s;pointer-events:none;z-index:99;white-space:nowrap}
-.toast.show{opacity:1}
+
+/* MAIN APP UI */
+#main-app{display:none;flex-direction:column;height:100%}
+.header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid #1a1a1a;background:#000;z-index:10}
+.header h1{font-size:24px;font-weight:900;letter-spacing:-0.5px;display:flex;align-items:center;gap:6px}
+.header h1 .ball{width:12px;height:12px}
+.content-area{flex:1;overflow-y:auto;padding-bottom:70px} /* space for bottom nav */
+
+/* BOTTOM NAV */
+.bottom-nav{position:absolute;bottom:0;left:0;width:100%;height:60px;background:#000;border-top:1px solid #1a1a1a;display:flex;justify-content:space-around;align-items:center;z-index:10}
+.nav-item{color:#666;font-size:24px;cursor:pointer;transition:color 0.2s;display:flex;flex-direction:column;align-items:center;font-size:12px;font-weight:600}
+.nav-item.active{color:#fff}
+.nav-item svg{width:26px;height:26px;margin-bottom:2px;fill:currentColor}
+
+/* POSTS */
+.feed{padding:16px 20px;display:flex;flex-direction:column;gap:20px}
+.post{background:#0a0a0a;border-radius:16px;padding:16px;border:1px solid #1a1a1a}
+.post-header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#FF6B35,#FF3B30);display:flex;justify-content:center;align-items:center;font-weight:900;font-size:18px;color:#fff}
+.post-meta{display:flex;flex-direction:column}
+.post-name{font-weight:700;font-size:15px}
+.post-time{font-size:12px;color:#666}
+.post-content{font-size:16px;line-height:1.5;color:#eee;margin-bottom:16px;word-break:break-word}
+.post-actions{display:flex;gap:20px;border-top:1px solid #1a1a1a;padding-top:12px}
+.action-btn{background:none;border:none;color:#888;font-size:15px;font-weight:600;display:flex;align-items:center;gap:6px;cursor:pointer;width:auto;padding:0;margin:0}
+.action-btn:active{transform:scale(0.9)}
+.liked{color:#FF6B6B}
+.empty-feed{text-align:center;color:#666;font-size:15px;margin-top:40px}
+
+/* CREATE POST SCREEN */
+#create-screen{display:none;padding:20px;flex-direction:column;height:100%}
+.create-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.cancel-btn{background:none;color:#fff;font-size:16px;width:auto;margin:0}
+.post-btn{background:#fff;color:#000;width:auto;padding:8px 20px;margin:0;border-radius:20px;font-size:14px}
+textarea{width:100%;background:transparent;border:none;color:#fff;font-size:20px;resize:none;height:200px;outline:none;font-family:inherit}
+textarea::placeholder{color:#555}
+
+/* PROFILE SCREEN */
+#profile-screen{display:none;padding:20px}
+.profile-header{display:flex;flex-direction:column;align-items:center;margin-top:20px;margin-bottom:30px}
+.profile-avatar{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#FF6B35,#FF3B30);display:flex;justify-content:center;align-items:center;font-size:36px;font-weight:900;margin-bottom:16px}
+.profile-email{font-size:18px;font-weight:700}
+.profile-stats{display:flex;gap:30px;margin-top:20px;border-top:1px solid #1a1a1a;border-bottom:1px solid #1a1a1a;padding:20px 0;width:100%;justify-content:center}
+.stat{display:flex;flex-direction:column;align-items:center}
+.stat-num{font-size:20px;font-weight:900}
+.stat-label{font-size:12px;color:#888}
+
+/* TOAST */
+.toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:#fff;color:#000;padding:12px 24px;border-radius:30px;font-weight:700;font-size:14px;opacity:0;transition:.3s;pointer-events:none;z-index:999;white-space:nowrap;box-shadow:0 4px 12px rgba(255,255,255,0.2)}
+.toast.show{opacity:1;bottom:90px}
 </style>
 </head>
 <body>
-<div id="toast" class="toast"></div>
+<div class="app-container">
+  <div id="toast" class="toast"></div>
 
-<!-- AUTH SCREEN -->
-<div id="auth-screen" class="screen">
-  <div class="logo-container"><div class="logo">Bouncy <span class="ball"></span></div><div class="tagline">Where ideas bounce.</div></div>
-  <input id="email" type="email" placeholder="Email" autocomplete="email" />
-  <input id="password" type="password" placeholder="Password (6+ chars)" />
-  <button id="signin-btn" class="btn-black">Sign In</button>
-  <button id="signup-btn" class="btn-outline">Sign Up</button>
-  <p id="error-msg"></p>
-</div>
-
-<!-- HOME SCREEN -->
-<div id="home-screen" class="screen hidden">
-  <div class="header"><h1>Bouncy</h1><button id="logout-btn" class="btn-logout">Logout</button></div>
-  
-  <div class="welcome" style="margin-bottom: 20px; display:flex; justify-content:space-between; align-items:center;">
-    <div><small>Signed in as</small><b id="user-email-display" style="font-size:13px"></b></div>
+  <!-- AUTH SCREEN -->
+  <div id="auth-screen">
+    <div class="logo-container"><div class="logo">Bouncy <span class="ball"></span></div><div class="tagline">Where ideas bounce.</div></div>
+    <input id="email" type="email" placeholder="Email" autocomplete="email" />
+    <input id="password" type="password" placeholder="Password (6+ chars)" />
+    <button id="signin-btn" class="btn-black">Sign In</button>
+    <button id="signup-btn" class="btn-outline">Sign Up</button>
+    <p id="error-msg"></p>
   </div>
 
-  <!-- POST COMPOSER -->
-  <textarea id="post-input" placeholder="What's bouncing in your mind?"></textarea>
-  <button id="post-btn" class="btn-black" style="margin-bottom: 30px;">Bounce It 🚀</button>
+  <!-- MAIN APP -->
+  <div id="main-app">
+    <!-- HEADER -->
+    <div class="header">
+      <h1>Bouncy <span class="ball"></span></h1>
+      <div class="avatar" id="header-avatar" style="width:32px;height:32px;font-size:14px;cursor:pointer">U</div>
+    </div>
 
-  <!-- FEED -->
-  <div id="feed-container">
-    <p class="empty-feed" id="empty-text">No bounces yet. Be the first!</p>
-    <div id="feed"></div>
+    <!-- HOME FEED -->
+    <div id="home-screen" class="content-area">
+      <div class="feed" id="feed">
+        <p class="empty-feed" id="empty-text">No bounces yet. Be the first!</p>
+      </div>
+    </div>
+
+    <!-- CREATE POST SCREEN -->
+    <div id="create-screen" class="content-area">
+      <div class="create-header">
+        <button class="cancel-btn" onclick="switchTab('home')">Cancel</button>
+        <button class="post-btn" id="submit-post-btn">Bounce It</button>
+      </div>
+      <textarea id="post-input" placeholder="What's bouncing in your mind?"></textarea>
+    </div>
+
+    <!-- PROFILE SCREEN -->
+    <div id="profile-screen" class="content-area">
+      <div class="profile-header">
+        <div class="profile-avatar" id="profile-avatar">U</div>
+        <div class="profile-email" id="profile-email">user@email.com</div>
+        <div class="profile-stats">
+          <div class="stat"><span class="stat-num" id="stat-posts">0</span><span class="stat-label">Bounces</span></div>
+          <div class="stat"><span class="stat-num">0</span><span class="stat-label">Followers</span></div>
+          <div class="stat"><span class="stat-num">0</span><span class="stat-label">Following</span></div>
+        </div>
+      </div>
+      <button id="logout-btn" class="btn-outline" style="margin-top:20px">Logout</button>
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <div class="bottom-nav" id="bottom-nav" style="display:none;">
+      <div class="nav-item active" onclick="switchTab('home')" id="nav-home">
+        <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+        Home
+      </div>
+      <div class="nav-item" onclick="switchTab('create')" id="nav-create">
+        <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+        Create
+      </div>
+      <div class="nav-item" onclick="switchTab('profile')" id="nav-profile">
+        <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        Profile
+      </div>
+    </div>
   </div>
 </div>
 
@@ -75,34 +151,54 @@ button:disabled{opacity:.6}
   const SUPABASE_ANON_KEY = 'sb_publishable_3ePLMRIKVNms7Qi461FQXw_x2TGc75s';
   const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   
-  const authScreen=document.getElementById('auth-screen'),homeScreen=document.getElementById('home-screen'),emailInput=document.getElementById('email'),passwordInput=document.getElementById('password'),errorMsg=document.getElementById('error-msg'),signinBtn=document.getElementById('signin-btn'),signupBtn=document.getElementById('signup-btn'),logoutBtn=document.getElementById('logout-btn'),userEmailDisplay=document.getElementById('user-email-display'),toast=document.getElementById('toast');
-  const postInput = document.getElementById('post-input'), postBtn = document.getElementById('post-btn'), feed = document.getElementById('feed'), emptyText = document.getElementById('empty-text');
-  
   let currentUser = null;
+  let userDisplayName = "";
+  let userInitial = "";
+  let currentFeedData = []; // Store posts in memory to handle likes easily
   let toastTimeout;
 
+  // DOM Elements
+  const authScreen=document.getElementById('auth-screen'), mainApp=document.getElementById('main-app');
+  const emailInput=document.getElementById('email'), passwordInput=document.getElementById('password');
+  const errorMsg=document.getElementById('error-msg'), signinBtn=document.getElementById('signin-btn'), signupBtn=document.getElementById('signup-btn'), logoutBtn=document.getElementById('logout-btn');
+  const feed=document.getElementById('feed'), emptyText=document.getElementById('empty-text'), postInput=document.getElementById('post-input'), submitPostBtn=document.getElementById('submit-post-btn');
+  const headerAvatar=document.getElementById('header-avatar'), profileAvatar=document.getElementById('profile-avatar'), profileEmail=document.getElementById('profile-email'), statPosts=document.getElementById('stat-posts');
+  const toast=document.getElementById('toast');
+  const bottomNav=document.getElementById('bottom-nav');
+  const navHome=document.getElementById('nav-home'), navCreate=document.getElementById('nav-create'), navProfile=document.getElementById('nav-profile');
+
+  // UI Helpers
   function showToast(m){clearTimeout(toastTimeout);toast.textContent=m;toast.classList.add('show');toastTimeout=setTimeout(()=>toast.classList.remove('show'),3000)}
   function showError(m){errorMsg.textContent=m;errorMsg.style.display='block'}
   function hideError(){errorMsg.textContent='';errorMsg.style.display='none'}
   function validate(e,p){if(!e){showError('Enter email');return false}if(!p||p.length<6){showError('Password must be 6+ chars');return false}return true}
-  
-  function showHome(email){
-    authScreen.classList.add('hidden');
-    homeScreen.classList.remove('hidden');
-    userEmailDisplay.textContent=email;
-    hideError();
-    emailInput.value='';
-    passwordInput.value='';
-    loadPosts(); // Load real posts when logged in
+
+  // App Navigation
+  function switchTab(tab) {
+    document.getElementById('home-screen').style.display = 'none';
+    document.getElementById('create-screen').style.display = 'none';
+    document.getElementById('profile-screen').style.display = 'none';
+    
+    navHome.classList.remove('active');
+    navCreate.classList.remove('active');
+    navProfile.classList.remove('active');
+
+    if(tab === 'home') {
+      document.getElementById('home-screen').style.display = 'block';
+      navHome.classList.add('active');
+      loadPosts();
+    } else if(tab === 'create') {
+      document.getElementById('create-screen').style.display = 'flex';
+      navCreate.classList.add('active');
+      postInput.focus();
+    } else if(tab === 'profile') {
+      document.getElementById('profile-screen').style.display = 'block';
+      navProfile.classList.add('active');
+      updateProfileStats();
+    }
   }
-  
-  function showAuth(){
-    homeScreen.classList.add('hidden');
-    authScreen.classList.remove('hidden');
-    hideError();
-  }
-  
-  // AUTH FUNCTIONS
+
+  // Auth Functions
   async function handleSignIn(){
     hideError();
     const email=emailInput.value.trim(),password=passwordInput.value;
@@ -127,23 +223,26 @@ button:disabled{opacity:.6}
   
   async function handleLogout(){
     await supabaseClient.auth.signOut();
-    showAuth();
+    authScreen.style.display='flex';
+    mainApp.style.display='none';
+    bottomNav.style.display='none';
+    currentUser = null;
   }
 
-  // POST FUNCTIONS
+  // Post Functions
   async function handleCreatePost() {
     const content = postInput.value.trim();
     if (!content) return;
     
-    postBtn.textContent = 'Bouncing...';
-    postBtn.disabled = true;
+    submitPostBtn.textContent = 'Bouncing...';
+    submitPostBtn.disabled = true;
 
     const { error } = await supabaseClient
       .from('posts')
       .insert([{ content: content, user_id: currentUser.id }]);
 
-    postBtn.textContent = 'Bounce It 🚀';
-    postBtn.disabled = false;
+    submitPostBtn.textContent = 'Bounce It';
+    submitPostBtn.disabled = false;
 
     if (error) {
       showToast('Error: ' + error.message);
@@ -151,78 +250,110 @@ button:disabled{opacity:.6}
     } else {
       postInput.value = '';
       showToast('Bounced successfully!');
-      loadPosts(); // Refresh feed
+      switchTab('home'); // Go back to home automatically
     }
   }
 
   async function loadPosts() {
+    // We use standard select. We will fake the email display using user_id matches.
     const { data, error } = await supabaseClient
       .from('posts')
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (error) {
-      showToast('Failed to load feed');
-      return;
-    }
+    if (error) { showToast('Failed to load feed'); return; }
+    
+    currentFeedData = data; // Save for interactions
 
     feed.innerHTML = '';
-    
     if (data.length === 0) {
       emptyText.style.display = 'block';
     } else {
       emptyText.style.display = 'none';
       
-      // Get current user's email for display (since we didn't make a profiles table yet)
-      const currentEmail = currentUser.email;
-
       data.forEach(post => {
+        const isMine = post.user_id === currentUser.id;
+        const authorName = isMine ? userDisplayName : "Bouncer_" + post.user_id.substring(0,4);
+        const initial = isMine ? userInitial : "B";
         const timeString = new Date(post.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + ' • ' + new Date(post.created_at).toLocaleDateString();
-        
-        // If it's the user's post, show "You", otherwise show a generic "Bouncer"
-        const authorName = post.user_id === currentUser.id ? 'You' : 'Bouncer';
+        const isLiked = false; // We'll add local tracking later if needed
 
         feed.innerHTML += `
           <div class="post">
-            <b>@${authorName}</b>
-            <p>${post.content}</p>
-            <small>${timeString}</small>
+            <div class="post-header">
+              <div class="avatar" style="${!isMine ? 'background:linear-gradient(135deg,#4ecdc4,#556270);' : ''}">${initial}</div>
+              <div class="post-meta">
+                <span class="post-name">${authorName}</span>
+                <span class="post-time">${timeString}</span>
+              </div>
+            </div>
+            <div class="post-content">${post.content}</div>
+            <div class="post-actions">
+              <button class="action-btn" onclick="likePost('${post.id}', ${post.likes})">
+                ❤️ ${post.likes || 0}
+              </button>
+              <button class="action-btn" onclick="showToast('Comments coming soon!')">
+                💬 0
+              </button>
+            </div>
           </div>
         `;
       });
     }
   }
 
-  // EVENT LISTENERS
+  // Like Function
+  window.likePost = async function(postId, currentLikes) {
+    // Optimistic UI update
+    showToast('Liked!');
+    const { error } = await supabaseClient
+      .from('posts')
+      .update({ likes: currentLikes + 1 })
+      .eq('id', postId);
+      
+    if(!error) loadPosts();
+  };
+
+  function updateProfileStats() {
+    // Count how many posts belong to this user
+    const myPosts = currentFeedData.filter(p => p.user_id === currentUser.id).length;
+    statPosts.textContent = myPosts;
+  }
+
+  // Initialize App
+  async function initApp(user) {
+    currentUser = user;
+    userDisplayName = user.email.split('@')[0]; // Get part before @
+    userInitial = userDisplayName.charAt(0).toUpperCase();
+    
+    // Update UI with user info
+    headerAvatar.textContent = userInitial;
+    profileAvatar.textContent = userInitial;
+    profileEmail.textContent = user.email;
+    
+    authScreen.style.display='none';
+    mainApp.style.display='flex';
+    bottomNav.style.display='flex';
+    
+    switchTab('home'); // Default to home
+  }
+
+  // Event Listeners
   signinBtn.addEventListener('click',handleSignIn);
   signupBtn.addEventListener('click',handleSignUp);
   logoutBtn.addEventListener('click',handleLogout);
-  postBtn.addEventListener('click', handleCreatePost);
+  submitPostBtn.addEventListener('click', handleCreatePost);
+  headerAvatar.addEventListener('click', () => switchTab('profile'));
 
-  // SESSION CHECK
-  async function checkSession(){
-    const{data:{session}}=await supabaseClient.auth.getSession();
-    if(session && session.user){
-      currentUser = session.user;
-      showHome(session.user.email);
-    } else {
-      showAuth();
-    }
-  }
-  
+  // Session Management
   supabaseClient.auth.onAuthStateChange((_e,s)=>{
-    if(s && s.user) {
-      currentUser = s.user;
-      showHome(s.user.email);
-    } else {
-      showAuth();
+    if(s && s.user) initApp(s.user);
+    else {
+      authScreen.style.display='flex';
+      mainApp.style.display='none';
+      bottomNav.style.display='none';
     }
   });
-  
-  checkApp();
-  async function checkApp() {
-    await checkSession();
-  }
 </script>
 </body>
 </html>
