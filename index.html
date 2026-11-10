@@ -1,73 +1,36 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Testing Page</title>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bouncy 🎉</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="auth-screen" class="screen">
+    <h1>Bouncy 🎉</h1>
+    <p class="tagline">Where ideas bounce.</p>
+    <input id="email" type="email" placeholder="Email" />
+    <input id="password" type="password" placeholder="Password (6+ chars)" />
+    <button id="signin-btn">Sign In</button>
+    <button id="signup-btn" class="alt">Sign Up</button>
+    <p id="auth-msg" class="msg"></p>
+  </div>
 
-    <style>
-      h1 {
-        color:black;
-        text-align:left;
-        padding:20px;
-        font-weight:bold;
-        font-family:George;
-      }
+  <div id="feed-screen" class="screen hidden">
+    <header>
+      <h1>Bouncy 🎉</h1>
+      <button id="logout-btn">Logout</button>
+    </header>
+    <div class="composer">
+      <textarea id="post-input" placeholder="What's bouncin'?"></textarea>
+      <button id="post-btn">Post</button>
+    </div>
+    <div id="feed"></div>
+    <p id="feed-empty" class="msg">No posts yet. Be the first! 🚀</p>
+  </div>
 
-        p {
-          color:black;
-          background-color:white;
-          padding:10px;
-          font-family:italic;
-          font-size:20x;
-          font-weight:bold;
-        }
-      .my-button {
-        background-color:powder blue;
-        color:black;
-        border-radius:8px;
-        padding:12px 20px;
-        text-align:top right;
-      }
-
-      body {
-    background-color: #f5f5f5;
-    font-family: Arial, sans-serif;
-    text-align: center;
-    padding: 20px;
-}
-
-h1 {
-    color: black;
-    font-size: 30px;
-}
-
-p {
-    color: #555;
-    font-size: 16px;
-    line-height: 1.6;
-}
-
-button {
-    background-color: black;
-    color: white;
-    padding: 12px 25px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-}
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   </style>
-  </head>
-
-  <body>
-
-    <h1>DuMaKuDe</h1>
-    <p>shange,</p>
-       <p>mdima,</p>
-      <p>dumakude</p>
-      <p>bhodlabakhothe abafokazane,</p>
-      <p>mathanga abshelelezi anganangqway'mane,</p>
-      <p>mabele made ancelisa amawele engaphesheya komfula,</p>
-      <p>DuMaKuDe.</p>
-    <button class="my-button">♡Mdims♡</button>
-  </body>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="app.js"></script>
+</body>
 </html>
