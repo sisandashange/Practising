@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bouncy 🎉</title>
+  <title>Bouncy v1.1 🎉</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
     body { background: #f7f7f7; color: #222; }
@@ -25,7 +25,7 @@
 </head>
 <body>
   <div id="auth-screen" class="screen">
-    <h1>Bouncy 🎉</h1>
+    <h1>Bouncy v1.1 🎉</h1>
     <p class="tagline">Where ideas bounce.</p>
     <input id="email" type="email" placeholder="Email" />
     <input id="password" type="password" placeholder="Password (6+ chars)" />
@@ -47,11 +47,24 @@
     <p id="feed-empty" class="msg" style="color: #999;">No posts yet. Be the first! 🚀</p>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- This catches if the Supabase library fails to download -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onerror="alert('FAILED TO LOAD SUPABASE. Check internet or adblocker.')"></script>
+  
   <script>
+    // This forces the phone to show us any error in the code
+    window.onerror = function(message, source, lineno, colno, error) {
+      alert("JAVASCRIPT ERROR: " + message + " on line " + lineno);
+    };
+
     // 1. Setup Supabase
     const SUPABASE_URL = 'https://lakupnehsetdazezlsrs.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_3ePLMRIKVNms7Qi461FQXw_x2TGc75s';
+    
+    // Check if Supabase loaded
+    if (!window.supabase) {
+      alert("Supabase library is missing! The CDN blocked it.");
+    }
+    
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // 2. Get HTML elements
@@ -64,6 +77,8 @@
 
     // 3. Sign In function
     window.signIn = async function() {
+      alert("Button clicked! Trying to log in..."); // PROOF IT WORKS
+      
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
       authMsg.textContent = 'Loading...';
@@ -81,6 +96,8 @@
 
     // 4. Sign Up function
     window.signUp = async function() {
+      alert("Button clicked! Trying to sign up..."); // PROOF IT WORKS
+      
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
       authMsg.textContent = 'Creating account...';
